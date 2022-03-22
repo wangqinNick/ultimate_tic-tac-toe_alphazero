@@ -17,7 +17,7 @@ import copy
 # Hyperparameters
 model_path = "GoodUltimate2019-03-03 21_06_38+MCTS600+cpuct4.h5"
 mcts_search = 400
-MCTS = True
+MCTS = False
 cpuct = 2
 
 
@@ -80,6 +80,8 @@ def possiblePos(board, subBoard):
     return possible
 
 
+# Perform the action: action, taken by player: player
+# Update the board info: board and sub_board info (newsubboard=3*r+c)
 def move(board,action, player):
 
     if player == 1:
@@ -87,7 +89,7 @@ def move(board,action, player):
     if player == -1:
         turn = "O"
     
-    bestPosition = []  # store the best moves
+    bestPosition = []  # store the sub_board, sub_row, sub_col values
 
     bestPosition.append(int (action / 9))  # sub_board
     remainder = action % 9  # 3 * row + col
@@ -107,9 +109,9 @@ def move(board,action, player):
     y = bestPosition[2]  # col on sub_board
 
     #check for win on verticle
-    if mini[0][y] == mini[1][y] == mini [2][y]:
-        board[subBoard] = emptyMiniBoard
-        board[subBoard][1][1] = turn.lower()
+    if mini[0][y] == mini[1][y] == mini [2][y]:  # if someone wins
+        board[subBoard] = emptyMiniBoard         # clear all previous marks
+        board[subBoard][1][1] = turn.lower()     # mark the center as 'x' or 'o', which is different from 'X' or 'O'
         wonBoard = True
 
     #check for win on horozontal
@@ -131,7 +133,7 @@ def move(board,action, player):
         wonBoard = True
 
     #set new subBoard
-    newsubBoard = (bestPosition[1] * 3) + bestPosition[2]
+    newsubBoard = (bestPosition[1] * 3) + bestPosition[2]  # sub_board number with row and col (3*row+col)
 
     # if the subBoard was won, checking whether the entire board is won as well
     if wonBoard == True:
@@ -144,9 +146,11 @@ def move(board,action, player):
     return board, newsubBoard, win
 
 
+# check if the whole game is ended after each time when a sub_board is won by a player
+# returns True and False
 def checkWinner(board,winningSubBoard, turn):
 
-    # getting coordinates of winning subBoard
+    # getting coordinates of winning subBoard, a.k.a. the evil root
     for i in range(3):
         if (winningSubBoard - i) % 3 == 0:
             row = int((winningSubBoard - i) /3)
@@ -356,14 +360,15 @@ def mcts(s, current_player, mini_board):
     return -v
 
 
-
+# input: board info
+# output: returns the (action, probability) pairs list
 def get_action_probs(init_board, current_player, mini_board):
 
-    for _ in range(mcts_search):
+    for _ in range(mcts_search):  # search for 400 times
         s = copy.deepcopy(init_board)
         value = mcts(s, current_player, mini_board)
     
-    print ("done one iteration of MCTS")
+    # print ("done one iteration of MCTS")
 
     actions_dict = {}
 
@@ -372,7 +377,7 @@ def get_action_probs(init_board, current_player, mini_board):
 
     for a in possiblePos(init_board, mini_board):
         actions_dict[a] = Nsa[(sTuple,a)] / Ns[sTuple]
-    print ("actions dict-", actions_dict)
+    # print ("actions dict-", actions_dict)
     action_probs = np.zeros(81)
     
     for a in actions_dict:
@@ -390,18 +395,18 @@ def playgame():
 
     while True:
         action = human_turn(board, mini_board, 'X')
-        next_board, mini_board, wonBoard = move(board, action, 1)
-
+        next_board, mini_board, wonBoard = move(board, action, 1)  # update the board info: next_board, miniboard, 
+                                                                   # and wonstatus accodring to player's move
         if wonBoard:
-            print ("Wow you're really good. You just beat a computer")
+            # print ("Wow you're really good. You just beat a computer")
             break
         else:
             board = next_board
         
-        if MCTS:
+        if MCTS:  # using Monte Carlo Tree Search
             policy = get_action_probs(board, -1, mini_board)
-            policy = policy / np.sum(policy)
-        else:
+            policy = policy / np.sum(policy)  # average
+        else:  # using neural network
             policy, value = nn.predict(board_to_array(board, mini_board, -1).reshape(1,9,9))
             possibleA = possiblePos(board,mini_board)
             valids = np.zeros(81)
