@@ -17,7 +17,7 @@ import copy
 # Hyperparameters
 model_path = "GoodUltimate2019-03-03 21_06_38+MCTS600+cpuct4.h5"
 mcts_search = 400
-MCTS = True
+MCTS = False
 cpuct = 2
 
 
