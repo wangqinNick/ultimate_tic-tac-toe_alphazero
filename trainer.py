@@ -3,7 +3,7 @@ import keras
 from keras import layers
 from keras.models import Model
 from keras import models
-from keras.optimizers import Adam
+# from keras.optimizers import Adam
 import numpy as np
 import math
 from collections import deque
@@ -437,7 +437,7 @@ def neural_network():
     v = layers.Dense(1, activation="tanh", name='value')(dense_2)
 
     model = Model(inputs=input_layer, outputs=[pi, v])
-    model.compile(loss=['categorical_crossentropy','mean_squared_error'], optimizer=Adam(learning_rate))
+    model.compile(loss=['categorical_crossentropy','mean_squared_error'], optimizer='adam')
 
     model.summary()
     return model

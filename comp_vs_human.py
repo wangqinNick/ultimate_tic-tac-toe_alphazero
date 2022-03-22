@@ -3,7 +3,7 @@ import keras
 from keras import layers
 from keras.models import Model
 from keras import models
-from keras.optimizers import Adam
+# from keras.optimizers import Adam
 from keras.models import load_model
 import numpy as np
 import math
